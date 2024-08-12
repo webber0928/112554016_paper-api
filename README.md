@@ -10,4 +10,6 @@ source venv/bin/activate # 可用 deactivate 關閉
 pip install --upgrade pip
 pip install .
 uvicorn app.main:app --reload
+
+python app/initial_data.py
 ```

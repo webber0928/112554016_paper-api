@@ -21,7 +21,6 @@ app = FastAPI(
 )
 
 # Set all CORS enabled origins
-print('L24:', settings.BACKEND_CORS_ORIGINS)
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
