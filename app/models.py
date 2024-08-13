@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
@@ -41,9 +42,10 @@ class UpdatePassword(SQLModel):
 
 # Database model, database table inferred from class name
 class User(UserBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    ChatBot: list["ChatBot"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -112,3 +114,42 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+
+# CChatBot
+class ChatBotBase(SQLModel):
+    type: str = Field(min_length=1, max_length=255)
+    prompt: str | None = Field(default=None, max_length=255)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class ChatBotCreate(ChatBotBase):
+    type: str = Field(min_length=1, max_length=255)
+    prompt: str | None = Field(default=None, max_length=255)
+
+
+class ChatBotUpdate(ChatBotBase):
+    type: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    prompt: str | None = Field(default=None, max_length=255)
+
+
+class ChatBot(ChatBotBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    type: str = Field(max_length=255)
+    prompt: str = Field(max_length=255)
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    owner: User | None = Relationship(back_populates="items")
+
+
+# Properties to return via API, id is always required
+class ChatBotPublic(ChatBotBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+
+
+class ChatBotsPublic(SQLModel):
+    data: list[ChatBotPublic]
+    count: int
+

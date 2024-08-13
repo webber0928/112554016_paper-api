@@ -1,8 +1,9 @@
 from sqlmodel import Session, create_engine, select, SQLModel
+import uuid
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate
+from app.models import User, UserCreate, ChatBot
 
 # engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 # engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI), connect_args={"check_same_thread": False})
@@ -31,6 +32,7 @@ def init_db(session: Session) -> None:
     ).first()
     if not user:
         user_in = UserCreate(
+            id = str(uuid.uuid4()),
             email=settings.FIRST_SUPERUSER,
             password=settings.FIRST_SUPERUSER_PASSWORD,
             is_superuser=True,
